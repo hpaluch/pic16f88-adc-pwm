@@ -1,0 +1,15 @@
+*~
+*.bak
+*.tmp
+*.swp
+
+.generated_files/
+private/
+build/
+debug/
+dist/
+disassembly/
+production/
+Package-*
+Makefile-*
+

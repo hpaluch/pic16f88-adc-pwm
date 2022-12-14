@@ -9,6 +9,11 @@ Used HW:
 - [PICDEM Lab Development Kit][DM163045] 
 - [PIC16F88][PIC16F88] - included with latest series of DM163045
 
+Early schematic is below:
+
+![PIC16F88 ADC PWM Schematic](https://raw.githubusercontent.com/hpaluch/pic16f88-adc-pwm/master/ExpressPCB/pic16f88-adc-pwm.png)
+
+
 # C Version
 
 Project under [pic16f88_adc_pwm_c.X/](pic16f88_adc_pwm_c.X/). Requires latest software:

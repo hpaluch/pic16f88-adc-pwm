@@ -3,6 +3,9 @@
 *.tmp
 *.swp
 
+# ExpressPCB temporary files
+*.bmp
+
 .generated_files/
 private/
 build/

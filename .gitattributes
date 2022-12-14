@@ -2,4 +2,6 @@
 Makefile text eol=lf
 
 *.png binary
+# ExpressPCB
+*.sch binary
 

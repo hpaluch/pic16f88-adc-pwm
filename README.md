@@ -1,9 +1,10 @@
-# ADC and PWD on PIC16F88
+# ADC and PWM on PIC16F88
 
 Project goal: read potentiometer value using ADC and output PWM to LED.
 
 - Done:
-  - Reading potentiometer value using ADC, on `RA0/AN0/PIN17`
+  - Reading potentiometer value using ADC, on `RA0/AN0/PIN17`, ADC produces
+    10-bit value from 0 to 1023 (0x3ff).
   - blinking LED on `RA1/AN1/PIN18`, `period = ADC * 1 ms`
   - prepared PWM (currently fixed duty only)
   - regulate LED brightness using PWM

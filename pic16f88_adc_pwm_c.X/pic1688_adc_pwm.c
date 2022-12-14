@@ -3,11 +3,10 @@
  * Summary:
  *    Done: - read potentiometer value with ADC on AN0/PIN17
  *          - blinking LEDs with delay ADC*1ms on RA1/PIN18
- *    TODO: and set LED brightness on
- *          that value using PWM
+ *          - brightness of LED on RB0 using PWM
  *     I/O: - RA0/AN0/PIN17 ADC Pontentiometer input, channel 0
- *          - RA1/AN1/PIN18 LED output
- *          - RB0/INT/CCP1/PIN6 LED PWM Output
+ *          - RA1/AN1/PIN18 LED output, frequency by pot
+ *          - RB0/INT/CCP1/PIN6 LED PWM Output, brightness by pot
  *  DevKit: DM163045 - PICDEM Lab Development Kit
  *    MCU: PIC16F88 PDIP
  *     SW: MPLAB X IDE v6.05, XC8 v2.40, DFP 1.3.42
@@ -47,6 +46,7 @@
 // my types - like Linux kernel
 typedef uint8_t u8;
 typedef uint16_t u16;
+typedef uint32_t u32;
 
 const u16 ADC_MAX_VALUE = 0x3ff;
 
@@ -85,6 +85,7 @@ void main(void) {
     u16 adc;
     u16 i;
     u16 ccpr;
+    u32 tmp32;
     
     // initialize PINs as soon as possible
     PORTA = 0; // ensure defined values on output latches
@@ -131,7 +132,13 @@ void main(void) {
        adc = read_ADC();
        if (adc > ADC_MAX_VALUE)
            adc = ADC_MAX_VALUE;
-       // TODO: change Duty cycle...
+       // experiment: change Duty cycle...
+       tmp32 = adc;
+       ccpr = (u16)( tmp32 * 4 * (PR2 + 1 ) / ADC_MAX_VALUE);
+       CCPR1L = (u8)(ccpr >> 2); // MSBs are here
+       // TODO: set also CCP1CON...
+       
+       // FIXME: this causes high latency on high adc values
        toggle_LED();
        for(i=0;i!=adc;i++){
         __delay_ms(1); // argument must be CONSTANT           

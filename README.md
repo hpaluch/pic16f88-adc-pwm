@@ -2,13 +2,13 @@
 
 Project goal: read potentiometer value using ADC and output PWM to LED.
 
-WORK IN PROGRESS! Status:
 - Done:
   - Reading potentiometer value using ADC, on `RA0/AN0/PIN17`
   - blinking LED on `RA1/AN1/PIN18`, `period = ADC * 1 ms`
   - prepared PWM (currently fixed duty only)
-- ToDo:
   - regulate LED brightness using PWM
+- TODO: use TMR1 + IRQ or better for cycle for blinking LED to avoid
+  high latencie for hight ADC values
 
 Used HW:
 - [PICDEM Lab Development Kit][DM163045] 

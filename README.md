@@ -6,6 +6,7 @@ WORK IN PROGRESS! Status:
 - Done:
   - Reading potentiometer value using ADC, on `RA0/AN0/PIN17`
   - blinking LED on `RA1/AN1/PIN18`, `period = ADC * 1 ms`
+  - prepared PWM (currently fixed duty only)
 - ToDo:
   - regulate LED brightness using PWM
 
@@ -16,6 +17,47 @@ Used HW:
 Early schematic is below:
 
 ![PIC16F88 ADC PWM Schematic](https://raw.githubusercontent.com/hpaluch/pic16f88-adc-pwm/master/ExpressPCB/pic16f88-adc-pwm.png)
+
+## PWM math
+
+Have to combine data from:
+- [PIC16F88][PIC16F88], page 84, section `9.3 PWM Mode`
+- [DS40001369C][DS40001369C], page 98, section `9.2.2 PWM Period`
+- [DS31014A][DS31014A], page 210 (14-8), section `14.5. PWM Mode`
+
+According to [PIC16F88][PIC16F88]  datasheet, page 84, section 9.3.1 PWM Period there is:
+```math
+PWM_{per} = \frac{ ( PR2 + 1 ) \ast 4 \ast TMR2 }{ F_{osc} }
+```
+
+So
+```math
+PR2 + 1 =  \frac{ PWM_{per} \ast F_{osc} }{ 4 \ast TMR2_{presc}  }
+```
+And finally:
+```math
+PR2 = \frac{ PWM_{per} \ast F_{osc} }{ 4 \ast TMR2_{presc}  } - 1
+```
+Or
+```math
+PR2 = \frac{ F_{osc} }{ 4 \ast TMR2_{presc} \ast PWM_{freq}  } - 1
+```
+Example for expected $PWM_{freq} = 1000$ Hz)
+```math
+PR2 = \frac{  4 000 000 }{ 4 \ast 1 \ast 1 000 } - 1 =  \frac{ 4 000 000 }{ 4 000 } - 1 = 99
+```
+So $PR2$ should be $99$.
+
+Now we need to compute value Pulse Width 10-bit register CCPR. Let's say we want
+Pulse Width 25% = Ratio 0.25 (ratio is from 0 to 0.99999). The formula is:
+```math
+DutyRatio = \frac{ CCPR_{10bit} }{ 4 \ast ( PR2 + 1 ) }
+```
+Thus
+```math
+CCPR_{10bit} = DutyRatio  \ast 4 \ast (PR2 + 1 ) = DutyRatio \ast 400
+```
+For ratio 25% => 0.25 we get $CCPR_{10bit} = 0.25 \ast 400 = 100 $
 
 
 # C Version
@@ -43,6 +85,13 @@ pic16f88_adc_pwm_c.X/dist/default/production/pic16f88_adc_pwm_c.X.production.map
 
 - used my PIC16F88 project as template:
   - https://github.com/hpaluch/pic16f88-comp-ccp-ex.X
+- `PICDEM Lab Development Board User Guide`
+  - [DS40001369C][DS40001369C]
+  - used above guide for modified ADC circuit and ADC and PWM
+    setup verification - but please note that this guide uses
+    different PIC
 
 [DM163045]: http://www.microchip.com/Developmenttools/ProductDetails/DM163045 "PICDEM Lab Development Kit"
 [PIC16F88]: https://www.microchip.com/wwwproducts/en/PIC16F88 "PIC16F88 Overview"
+[DS40001369C]: https://ww1.microchip.com/downloads/en/DeviceDoc/40001369C.pdf "PICDEM Lab Development Board User Guide"
+[DS31014A]: https://ww1.microchip.com/downloads/en/devicedoc/33023a.pdf "PICmicro Mid-Range MCU Family Reference Manual"

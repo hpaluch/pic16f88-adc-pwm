@@ -7,6 +7,7 @@
  *          that value using PWM
  *     I/O: - RA0/AN0/PIN17 ADC Pontentiometer input, channel 0
  *          - RA1/AN1/PIN18 LED output
+ *          - RB0/INT/CCP1/PIN6 LED PWM Output
  *  DevKit: DM163045 - PICDEM Lab Development Kit
  *    MCU: PIC16F88 PDIP
  *     SW: MPLAB X IDE v6.05, XC8 v2.40, DFP 1.3.42
@@ -49,9 +50,6 @@ typedef uint16_t u16;
 
 const u16 ADC_MAX_VALUE = 0x3ff;
 
-// My I/O ports
-#define fLED_MASK  _PORTA_RA1_MASK
-
 // show to user which mode is compiled
 #ifdef __DEBUG
 #warning Build in Debug mode
@@ -59,18 +57,15 @@ const u16 ADC_MAX_VALUE = 0x3ff;
 #warning Build in Production (Run) mode
 #endif
 
-// start with Flash LED ON
-// v = variable
-// PIC16F88 has no LATA (Latch on Port A) - read-modify-write
-// reads real value on input which often leads to unexpected
-// behaviour - therefore we use "shadow variable"
-volatile unsigned char vLATA = fLED_MASK;
+#define fLED_MASK  _PORTA_RA1_MASK
+volatile unsigned char vLATA = 0;
 
 void toggle_LED(void)
 {
     vLATA = vLATA ^ fLED_MASK;
     PORTA = vLATA;
 }
+
 
 u16 read_ADC(void)
 {
@@ -89,12 +84,13 @@ u16 read_ADC(void)
 void main(void) {
     u16 adc;
     u16 i;
+    u16 ccpr;
     
     // initialize PINs as soon as possible
-    PORTA = vLATA;
-    TRISA = (u8) ~ fLED_MASK; // only our LED set as output
-    PORTA = vLATA; // ensure that values are really set
-    
+    PORTA = 0; // ensure defined values on output latches
+    TRISA = (u8) ~ fLED_MASK; // disable all outputs, expect LED on RA1
+    PORTB = 0;
+    TRISB = (u8) ~0; // all PORTB are inputs temporarily
     
     // ADC setup
     // 1. enable Digital I/O on RA1 (Flash LED), ensure that RA0 is Analog Input
@@ -114,17 +110,31 @@ void main(void) {
     // wait until OSC is stable, otherwise we will screw up 1st
     // call of __delay_ms() !!! it will be much slower then expected!!
     while(OSCCONbits.IOFS == 0){/*nop*/};
-    vLATA &= (u8)~fLED_MASK; // Flash LED now off
-    PORTA = vLATA;
 
+    // PWM Setup - requires stabilized OSC
+    // see https://ww1.microchip.com/downloads/en/devicedoc/33023a.pdf
+    // page 216, Example 14-5: PWM Initialization
+    CCP1CON = 0; // reset PWM module
+    TMR2 = 0; // reset PWM timer
+    // 1. set period
+    PR2 = 100; // for 1000 Hz PWM period   
+    // 2.  set duty cycle
+    ccpr = 25; // see README.md for computation
+    CCPR1L = (u8)(ccpr >> 2); // MSBs are here
+    // set period and enable PWM
+    CCP1CON = (u8)(((ccpr & 3) << 4) | 0x0c); // set LSBs 2-bit
+    TRISB = (u8) ~ _TRISB_TRISB0_MASK;     // enable PWM on RB0/PIN6
+    T2CON = _T2CON_TMR2ON_MASK; //enable TMR2, Prescaler 1:1, Postscaler 1:1
+    
     while(1){
        // valid values are 0 to 1023 0x3ff
        adc = read_ADC();
        if (adc > ADC_MAX_VALUE)
            adc = ADC_MAX_VALUE;
+       // TODO: change Duty cycle...
        toggle_LED();
        for(i=0;i!=adc;i++){
-           __delay_ms(1); // argument must be CONSTANT
+        __delay_ms(1); // argument must be CONSTANT           
        }
     }
 }

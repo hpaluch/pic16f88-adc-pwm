@@ -5,6 +5,9 @@
 
 # ExpressPCB temporary files
 *.bmp
+# PhotoScape files
+Originals/
+*.db
 
 .generated_files/
 private/

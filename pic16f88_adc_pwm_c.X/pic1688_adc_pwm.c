@@ -1,10 +1,12 @@
 /*
  * File:   pic1688_adc_pwm.c
  * Summary:
- *    TODO: Will read potentiometer value with ADC
- *          and set LED brightness on
+ *    Done: - read potentiometer value with ADC on AN0/PIN17
+ *          - blinking LEDs with delay ADC*1ms on RA1/PIN18
+ *    TODO: and set LED brightness on
  *          that value using PWM
- *     I/O: RA1/PIN18 LED output
+ *     I/O: - RA0/AN0/PIN17 ADC Pontentiometer input, channel 0
+ *          - RA1/AN1/PIN18 LED output
  *  DevKit: DM163045 - PICDEM Lab Development Kit
  *    MCU: PIC16F88 PDIP
  *     SW: MPLAB X IDE v6.05, XC8 v2.40, DFP 1.3.42
@@ -39,6 +41,13 @@
 // Use project enums instead of #define for ON and OFF.
 #define  _XTAL_FREQ 4000000 // f_osc (4MHz) for __delay_ms();
 #include <xc.h>
+#include <stdint.h>
+
+// my types - like Linux kernel
+typedef uint8_t u8;
+typedef uint16_t u16;
+
+const u16 ADC_MAX_VALUE = 0x3ff;
 
 // My I/O ports
 #define fLED_MASK  _PORTA_RA1_MASK
@@ -63,24 +72,59 @@ void toggle_LED(void)
     PORTA = vLATA;
 }
 
+u16 read_ADC(void)
+{
+    u16 tmp;
+    
+    ADCON0bits.GO_DONE = 1;
+    while(ADCON0bits.GO_DONE){
+        // nop
+    }
+    tmp = ADRESH;
+    tmp <<= 8;
+    tmp |= ADRESL;
+    return tmp;
+}
+
 void main(void) {
+    u16 adc;
+    u16 i;
+    
     // initialize PINs as soon as possible
     PORTA = vLATA;
-    TRISA = ~fLED_MASK; // only our LED set as output
+    TRISA = (u8) ~ fLED_MASK; // only our LED set as output
     PORTA = vLATA; // ensure that values are really set
     
-    // enable I/O on RA1 (Flash LED)
-    ANSEL = ~ _ANSEL_ANS1_MASK; 
     
+    // ADC setup
+    // 1. enable Digital I/O on RA1 (Flash LED), ensure that RA0 is Analog Input
+    ANSEL = (u8) ~ _ANSEL_ANS1_MASK; 
+    // 2. set VREF/ADCON1: ADFM=1 (result Right justified),
+    //    ADCS2 = divide disabled, Vref VCFG = 00B - AVdd AVss
+    ADCON1 = _ADCON1_ADFM_MASK;
+    // 3. set AD Input channel ADCON0
+    // 4. set AD conversion clock ADCON0
+    //    use FRC clock, channel 0 RA0/AN0
+    ADCON0 = _ADCON0_ADCS_MASK;
+    // 5. enable AD module - do this as separated step!
+    ADCON0bits.ADON = 1;
+ 
+    // OSC setup
     OSCCONbits.IRCF = 0b110;    // f = 4 MHz => 1 MHz instruction clock
     // wait until OSC is stable, otherwise we will screw up 1st
     // call of __delay_ms() !!! it will be much slower then expected!!
     while(OSCCONbits.IOFS == 0){/*nop*/};
-    vLATA &= ~fLED_MASK; // Flash LED now off
+    vLATA &= (u8)~fLED_MASK; // Flash LED now off
     PORTA = vLATA;
 
     while(1){
+       // valid values are 0 to 1023 0x3ff
+       adc = read_ADC();
+       if (adc > ADC_MAX_VALUE)
+           adc = ADC_MAX_VALUE;
        toggle_LED();
-       __delay_ms(250);
+       for(i=0;i!=adc;i++){
+           __delay_ms(1); // argument must be CONSTANT
+       }
     }
 }

@@ -24,6 +24,7 @@ Important! These pins should be left not-connected for successful Programming an
 - PIN9 - `RB3/PGM/CCP1(x)` - for Lov Voltage Programming (LVP) mode
 - PIN12 - `RB6/PGC/T1OSO/T1CKI` - Programmer/debugger Clock
 - PIN13 - `RB7/PGD/T1OSI` - Programmer/Debugger Data
+
 If you connect load or capacity on any of above pins it may interfere with Programming and/or Debugging this chip.
 
 

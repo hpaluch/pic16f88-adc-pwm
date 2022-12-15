@@ -13,7 +13,7 @@ What it does (in a loop, around every 10ms):
 
 Used HW:
 - [PICDEM Lab Development Kit][DM163045] 
-- [PIC16F88][PIC16F88] - included with latest series of [DM163045][DM163045]
+- [PIC16F88][PIC16F88], note[^1] - included with latest series of [DM163045][DM163045]
 
 Schematic is below:
 
@@ -88,6 +88,10 @@ pic16f88_adc_pwm_c.X/dist/default/production/pic16f88_adc_pwm_c.X.production.map
   - used above guide for modified ADC circuit and ADC and PWM
     setup verification - but please note that this guide uses
     different PIC
+
+[^1]: PIC16F88 is one of few that has Integrated Circuit Debugger (ICD) which means that you can
+use them directly with suitable Debugger (PicKit3, ICD3, ICD4,...). Many other 8-bit PICs can't
+be debugged without special Adapter with emulation chip (called AC header).
 
 [DM163045]: http://www.microchip.com/Developmenttools/ProductDetails/DM163045 "PICDEM Lab Development Kit"
 [PIC16F88]: https://www.microchip.com/wwwproducts/en/PIC16F88 "PIC16F88 Overview"

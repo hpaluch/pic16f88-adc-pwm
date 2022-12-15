@@ -19,6 +19,14 @@ Schematic is below:
 
 ![PIC16F88 ADC PWM Schematic](https://raw.githubusercontent.com/hpaluch/pic16f88-adc-pwm/master/ExpressPCB/pic16f88-adc-pwm.png)
 
+Important! These pins should be left not-connected for successful Programming and/or Debugging:
+- PIN4 - `RA5/MCLR/VPP` - for RESET and Programming voltage (RESET required for PIC to enter Programming mode, etc.)
+- PIN9 - `RB3/PGM/CCP1(x)` - for Lov Voltage Programming (LVP) mode
+- PIN12 - `RB6/PGC/T1OSO/T1CKI` - Programmer/debugger Clock
+- PIN13 - `RB7/PGD/T1OSI` - Programmer/Debugger Data
+If you connect load or capacity on any of above pins it may interfere with Programming and/or Debugging this chip.
+
+
 ## PWM math
 
 Have to combine data from:
@@ -89,7 +97,7 @@ pic16f88_adc_pwm_c.X/dist/default/production/pic16f88_adc_pwm_c.X.production.map
     setup verification - but please note that this guide uses
     different PIC
 
-[^1]: PIC16F88 is one of few that has Integrated Circuit Debugger (ICD) which means that you can
+[^1]: PIC16F88 is one of few that has In-Circuit Debugger (ICD) which means that you can
 use them directly with suitable Debugger (PicKit3, ICD3, ICD4,...). Many other 8-bit PICs can't
 be debugged without special Adapter with emulation chip (called AC header).
 

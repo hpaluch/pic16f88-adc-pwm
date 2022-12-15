@@ -3,6 +3,8 @@
 Demo project to read potentiometer value using ADC and output PWM to LED.
 I use it to learn how to use ADC and PWM on [PIC16F88][PIC16F88]. 
 
+![PICDEM ADC PWM board](https://raw.githubusercontent.com/hpaluch/pic16f88-adc-pwm/master/assets/pic16f88-adc-pwm.jpg)
+
 What it does (in a loop, around every 10ms):
 1. Read potentiometer value using ADC, on `RA0/AN0/PIN17`, ADC produces
     10-bit value from 0 to 1023 (0x3ff)

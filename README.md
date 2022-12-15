@@ -1,21 +1,21 @@
 # ADC and PWM on PIC16F88
 
-Project goal: read potentiometer value using ADC and output PWM to LED.
+Demo project to read potentiometer value using ADC and output PWM to LED.
+I use it to learn how to use ADC and PWM on [PIC16F88][PIC16F88]. 
 
-- Done:
-  - Reading potentiometer value using ADC, on `RA0/AN0/PIN17`, ADC produces
-    10-bit value from 0 to 1023 (0x3ff).
-  - blinking LED on `RA1/AN1/PIN18`, `period = ADC * 1 ms`
-  - prepared PWM (currently fixed duty only)
-  - regulate LED brightness using PWM
-- TODO: use TMR1 + IRQ or better for cycle for blinking LED to avoid
-  high latencie for hight ADC values
+What it does (in a loop, around every 10ms):
+1. Read potentiometer value using ADC, on `RA0/AN0/PIN17`, ADC produces
+    10-bit value from 0 to 1023 (0x3ff)
+1. set LED brightness on `RB0/INT/CCP1/PIN6` using PWM - duty based on ADC value, PWM frequency
+   is fixed at 1 kHz
+1. Blinks LED on `RA1/AN1/PIN18`, period based on ADC value, the shortest period is 50ms,
+   longest is 1s
 
 Used HW:
 - [PICDEM Lab Development Kit][DM163045] 
-- [PIC16F88][PIC16F88] - included with latest series of DM163045
+- [PIC16F88][PIC16F88] - included with latest series of [DM163045][DM163045]
 
-Early schematic is below:
+Schematic is below:
 
 ![PIC16F88 ADC PWM Schematic](https://raw.githubusercontent.com/hpaluch/pic16f88-adc-pwm/master/ExpressPCB/pic16f88-adc-pwm.png)
 
@@ -78,9 +78,6 @@ Linker map file is generated in:
 ```
 pic16f88_adc_pwm_c.X/dist/default/production/pic16f88_adc_pwm_c.X.production.map
 ```
-
-# Tips
-
 
 # Resources
 

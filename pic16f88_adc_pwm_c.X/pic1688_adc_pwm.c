@@ -1,15 +1,15 @@
 /*
  * File:   pic1688_adc_pwm.c
  * Summary:
- *    Done: - read potentiometer value with ADC on AN0/PIN17
- *          - blinking LEDs with delay ADC*1ms on RA1/PIN18
- *          - brightness of LED on RB0 using PWM
- *     I/O: - RA0/AN0/PIN17 ADC Pontentiometer input, channel 0
- *          - RA1/AN1/PIN18 LED output, frequency by pot
+ *          1. read potentiometer value with ADC on AN0/PIN17
+ *          2. set brightness LED on RB0 using PWM based on  potentiometer value
+ *          3. blinking other LED on RA1, period based on potentiometer value
+ *     I/O: - RA0/AN0/PIN17 ADC potentiometer input, channel 0
+ *          - RA1/AN1/PIN18 LED output, period by pot
  *          - RB0/INT/CCP1/PIN6 LED PWM Output, brightness by pot
  *  DevKit: DM163045 - PICDEM Lab Development Kit
- *    MCU: PIC16F88 PDIP
- *     SW: MPLAB X IDE v6.05, XC8 v2.40, DFP 1.3.42
+ *     MCU: PIC16F88 PDIP
+ *      SW: MPLAB X IDE v6.05, XC8 v2.40, DFP 1.3.42
  * Created on December 13, 2022, 1:20 PM
  */
 
@@ -66,7 +66,6 @@ void toggle_LED(void)
     PORTA = vLATA;
 }
 
-
 u16 read_ADC(void)
 {
     u16 tmp;
@@ -82,9 +81,7 @@ u16 read_ADC(void)
 }
 
 void main(void) {
-    u16 adc;
-    u16 i;
-    u16 ccpr;
+    u16 adc,i,ccpr,ticks=0,ledper=0;
     u32 tmp32;
     
     // initialize PINs as soon as possible
@@ -119,7 +116,7 @@ void main(void) {
     TMR2 = 0; // reset PWM timer
     // 1. set period
     PR2 = 100; // for 1000 Hz PWM period   
-    // 2.  set duty cycle
+    // 2.  set duty cycle (any value <= PR2 is ok)
     ccpr = 25; // see README.md for computation
     CCPR1L = (u8)(ccpr >> 2); // MSBs are here
     // set period and enable PWM
@@ -136,12 +133,18 @@ void main(void) {
        tmp32 = adc;
        ccpr = (u16)( tmp32 * 4 * (PR2 + 1 ) / ADC_MAX_VALUE);
        CCPR1L = (u8)(ccpr >> 2); // MSBs are here
-       // TODO: set also CCP1CON...
+       CCP1CON = (u8)(((ccpr & 3) << 4) | 0x0c); // set LSBs 2-bit
+
+       // stretch LED period from 50ms to 1000ms, ledper 5 to 100
+       ledper = adc * 95 / ADC_MAX_VALUE + 5;
        
-       // FIXME: this causes high latency on high adc values
-       toggle_LED();
-       for(i=0;i!=adc;i++){
-        __delay_ms(1); // argument must be CONSTANT           
+       // 10ms is highest non-observable input latency
+       // (actually same as USB 1.x HID devices - mouse, keyboard...)
+       __delay_ms(10); // argument must be CONSTANT
+       ticks++;
+       if (ticks >= ledper){
+           toggle_LED();
+           ticks = 0;
        }
     }
 }
